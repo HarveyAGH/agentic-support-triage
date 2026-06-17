@@ -1,0 +1,14 @@
+langchain
+langchain_community
+langgraph
+langchain_aws
+langchain_core
+psycopg
+langchain
+python-dotenv
+pydantic
+duckduckgo-search
+pytest
+langchain-groq
+python-dotenv
+langchain-google-genai

@@ -1,0 +1,22 @@
+[project]
+name = "agentic-support-triage"
+description = "LangGraph customer support triage agent with supervisor routing, structured outputs, LangSmith tracing, secured tools, and deterministic evals."
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ddgs>=9.14.4",
+    "duckduckgo-search>=8.1.1",
+    "langchain>=1.3.9",
+    "langchain-aws>=1.5.1",
+    "langchain-community>=0.4.2",
+    "langchain-core>=1.4.7",
+    "langchain-google-genai>=4.2.5",
+    "langchain-groq>=1.1.3",
+    "langgraph>=1.2.5",
+    "langgraph-supervisor>=0.0.31",
+    "psycopg>=3.3.4",
+    "pydantic>=2.13.4",
+    "pytest>=9.1.0",
+    "python-dotenv>=1.2.2",
+]

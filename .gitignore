@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets and local environment
+.env
+
+# Generated runtime artifacts
+tickets/
+evals/results/
+*.log
+
+# Private career artifacts
+RESUME.md
+
+# Local editor/system files
+.DS_Store
+Thumbs.db
