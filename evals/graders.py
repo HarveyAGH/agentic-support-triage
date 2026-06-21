@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import Any
+import json
 
 
 ROUTE_TOOLS = {
@@ -153,3 +154,70 @@ def grade_under_hop_limit(run_result: dict, expected: dict, max_hops: int = 8) -
         "score": 1.0 if passed else 0.0,
         "reason": f"{hop_count} messages (limit: {max_hops})",
     }
+    
+def grade_quality_llm_judge(run_result: dict, expected: dict, llm, rubric: str | None = None) -> dict:
+    """Uses an LLM judge to score the final customer facing quality
+    This is for subjective quality, not for deterministic facts like route/tool calls
+    """
+    user_input = expected.get("input", "")
+    expected_route = expected.get("expected_route")
+    expected_escalation = expected.get("expected_escalation")
+    final_answer = _final_text(run_result)
+    called_routes = _called_routes(run_result)
+    
+    default_rubric = """
+    Score from 0.0 to 1.0 based on:
+
+    - Does the answer directly address the user's support issue? (0.0-0.25)
+    - Is it professional, clear, and concise for a customer support setting? (0.0-0.20)
+    - Does it avoid overpromising refunds, approvals, timelines, or unsupported actions? (0.0-0.20)
+    - Does it ask for useful missing information only when needed? (0.0-0.15)
+    - Is the escalation behavior appropriate for the case severity? (0.0-0.10)
+    - Is the answer consistent with the expected route/domain? (0.0-0.10)
+    """
+    
+    scoring_rubric = rubric or default_rubric
+    
+    
+    prompt = f"""You are an objective evaluator for a customer support AI agent.
+
+User input:
+{user_input}
+
+Expected route:
+{expected_route}
+
+Routes actually called:
+{called_routes}
+
+Expected escalation:
+{expected_escalation}
+
+Final answer to evaluate:
+{final_answer[:3000]}
+
+Scoring rubric:
+{scoring_rubric}
+
+Return ONLY valid JSON with no markdown and no extra text:
+{{"score": <float from 0.0 to 1.0>, "reason": "<one sentence>"}}"""
+
+    try:
+        response = llm.invoke(prompt)
+        clean = _message_text(response).strip()
+        clean = clean.replace("```json", "").replace("```", "").strip()
+
+        start = clean.find("{")
+        end = clean.rfind("}") + 1
+        result = json.loads(clean[start:end])
+
+        score = max(0.0, min(1.0, float(result["score"])))
+        return {
+            "score": score,
+            "reason": str(result["reason"]),
+        }
+    except Exception as exc:
+        return {
+            "score": 0.0,
+            "reason": f"Judge failed to parse: {exc}",
+        }

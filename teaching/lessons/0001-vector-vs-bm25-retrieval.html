@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0001 - Vector Search vs BM25</title>
+  <link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <h1>Lesson 0001: Vector Search vs BM25</h1>
+  <p class="callout">Mission link: this lesson makes your RAG skill interview-safe. You will know when vector search is enough, when it is wrong, and why hybrid retrieval is the stronger engineering answer.</p>
+
+  <h2>The Win</h2>
+  <p>By the end, you should be able to explain this without notes:</p>
+  <pre><code>Vector search finds similar meaning.
+BM25/full-text search finds exact words.
+Hybrid retrieval uses both.</code></pre>
+
+  <h2>Your Current System</h2>
+  <p>Your RAG script already proves this path:</p>
+  <pre><code>PDF -> pages -> chunks -> SentenceTransformers embeddings -> ChromaDB -> top-k retrieval</code></pre>
+  <p>That is semantic retrieval. It worked when you asked:</p>
+  <pre><code>what is mental health?</code></pre>
+  <p>Chroma returned chunks from <code>Understanding Mental Health.pdf</code> with source metadata. Good. That is resume-valid as vector retrieval.</p>
+
+  <h2>Where Vector Search Fails</h2>
+  <p>Vector search can miss cases where exact tokens matter more than general meaning:</p>
+  <ul>
+    <li>error codes: <code>HTTP 500</code>, <code>ERR_AUTH_401</code></li>
+    <li>invoice IDs or ticket IDs</li>
+    <li>policy phrases: <code>30 days of purchase</code></li>
+    <li>unsafe terminology examples: <code>psycho</code>, <code>schizo</code>, <code>lunatic</code></li>
+    <li>API endpoint names: <code>/v1/export</code></li>
+  </ul>
+  <p>In those cases, BM25/full-text search is often stronger because it rewards exact term overlap.</p>
+
+  <h2>Where BM25 Fails</h2>
+  <p>BM25 can miss semantic matches when the user asks with different wording:</p>
+  <pre><code>User asks: "How does someone's job affect their wellbeing?"
+Document says: "Work can protect mental health but can also adversely affect it."</code></pre>
+  <p>The exact words are different. Vector search is likely better.</p>
+
+  <h2>The Professional Pattern</h2>
+  <p>For serious RAG, the default mental model is not "vectorless vs vector." It is retrieval strategy:</p>
+  <pre><code>1. Use vector search for semantic recall.
+2. Use BM25/full-text for exact precision.
+3. Merge or rerank results.
+4. Send grounded chunks to the final answer step.</code></pre>
+
+  <h2>Mini Practice</h2>
+  <div class="check">
+    <p><strong>Pick the better first retriever:</strong></p>
+    <p>Query A: <code>what is mental health?</code></p>
+    <details><summary>Reveal answer</summary><p>Vector search first. The query is semantic and broad.</p></details>
+    <p>Query B: <code>psycho schizo terminology</code></p>
+    <details><summary>Reveal answer</summary><p>BM25 first. Exact words matter.</p></details>
+    <p>Query C: <code>how can work stress affect motivation?</code></p>
+    <details><summary>Reveal answer</summary><p>Vector search first. The query is conceptual.</p></details>
+    <p>Query D: <code>30 days of purchase annual plans 10%</code></p>
+    <details><summary>Reveal answer</summary><p>BM25 first. Exact policy terms matter.</p></details>
+  </div>
+
+  <h2>Your Next Build Step</h2>
+  <p>Add a BM25 retriever over the same chunks you already send to Chroma. Then test the same query against both retrieval methods.</p>
+  <pre><code>vector_results = chroma_retriever.retrieve(query)
+bm25_results = bm25_retriever.invoke(query)
+print("vector:", vector_results[0])
+print("bm25:", bm25_results[0])</code></pre>
+
+  <h2>Primary Source</h2>
+  <p>Read the <a href="https://reference.langchain.com/python/langchain_community/retrievers/bm25/">LangChain BM25Retriever API reference</a>. For vector querying, keep the <a href="https://docs.trychroma.com/docs/querying-collections/query-and-get">Chroma query guide</a> nearby. For production context, skim Elastic's <a href="https://www.elastic.co/docs/solutions/search/full-text">full-text search guide</a>.</p>
+
+  <h2>Reference</h2>
+  <p>Use the <a href="../reference/retrieval-choice-cheatsheet.html">Retrieval Choice Cheatsheet</a> when deciding what to implement.</p>
+
+  <h2>Ask Me</h2>
+  <p>Ask me to quiz you on this, or ask me to help add BM25 to your current RAG script when you are ready.</p>
+</body>
+</html>

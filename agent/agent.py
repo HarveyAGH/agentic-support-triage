@@ -94,9 +94,9 @@ You are the customer support triage supervisor for a multi-agent support system.
 
 Your job is to understand the user's request, choose the right specialist agent, and coordinate the final answer. You supervise these agents:
 
-- billing_expert: invoices, refunds, charges, subscriptions, payment failures, plan changes.
-- technical_expert: bugs, login issues, integrations, errors, setup, troubleshooting.
-- faq_expert: product policies, basic how-to questions, account/general documentation lookups.
+- billing_expert: account-specific invoices, charges, subscriptions, payment failures, plan changes, and refund processing.
+- technical_expert: bugs, login failures, integrations, errors, setup, troubleshooting.
+- faq_expert: product policies, refund eligibility, password reset instructions, basic how-to questions, account/general documentation lookups.
 - escalation_expert: urgent/urgency, sensitive, legal, security, account-risk, angry customer, refund exception, data/privacy, or unresolved multi-step cases.
 
 Routing rules:
@@ -110,11 +110,11 @@ Routing rules:
 - Route cases about stuck exports, stuck workflows, unresolved support follow-ups, or issues waiting for multiple days to route_to_escalation.
 - Do not invent policies, ticket IDs, refund approvals, or technical facts.
 - Prefer deterministic safety over being helpful when there is risk.
-- For refund eligibility or refund policy questions, call route_to_faq.
-- For account-specific refund investigation, duplicate charge, payment issue, or processing  request, call route_to_billing.
+- For refund eligibility or refund policy questions, including annual-plan eligibility and usage-limit questions, call route_to_faq.
+- For account-specific refund processing, duplicate charge, invoice mismatch, payment issue, or subscription billing investigation, call route_to_billing.
 - Do not answer refund policy questions yourself.
-- For password reset instructions or password policy questions, call route_to_faq.
-- For password reset failures, invalid credentials, expired reset links, or login troubleshooting, call route_to_technical.
+- For password reset instructions, expired reset links, reset-link expiration, or password policy questions, call route_to_faq.
+- For login still failing after following reset instructions, invalid credentials, account lockout, app errors, or login troubleshooting beyond documented reset steps, call route_to_technical.
 - Requests involving urgent data deletion, privacy rights, GDPR, or account deletion must route to escalation unless the user only asks a general FAQ policy question.
 
 Final response rules:
@@ -164,7 +164,7 @@ structured_output_FAQ = haiku.with_structured_output(FAQResult)
 
 @tool
 def route_to_billing(user_request: str) -> BillingResult:
-    """Route billing, invoice, refund, subscription, and payment issues."""
+    """Route account-specific billing investigations: invoices, charges, subscriptions, failed payments, duplicate charges, and refund processing. Do not use for general refund policy or eligibility questions."""
     result = billing_agent.invoke(
         {"messages": [HumanMessage(content=user_request)]},
         config={
@@ -216,7 +216,7 @@ def route_to_billing(user_request: str) -> BillingResult:
 
 @tool
 def route_to_technical(user_request: str) -> TechnicalResult:
-    """Route bugs, setup, login, API, integration, and troubleshooting issues."""
+    """Route bugs, setup, API, integration, crashes, invalid credentials, account lockouts, and login troubleshooting beyond documented password reset instructions."""
     result = technical_agent.invoke(
         {"messages": [HumanMessage(content=user_request)]},
         config={
@@ -315,7 +315,7 @@ def route_to_escalation(user_request: str) -> EscalationResult:
 
 @tool
 def route_to_faq(user_request: str) -> FAQResult:
-    """Route general product, policy, payment-method, setup, and documentation questions."""
+    """Route documented FAQ questions: product policy, refund eligibility, payment methods, support hours, GDPR, password reset instructions, expired reset links, setup, and general documentation lookups."""
     result = FAQ_agent.invoke(
         {"messages": [HumanMessage(content=user_request)]},
         config={
@@ -405,7 +405,7 @@ main_supervisor = create_agent(
 )
 
 
-app = main_supervisor
+graph_app = main_supervisor
 
 config = {
     "configurable": {"thread_id": "6"},
@@ -426,6 +426,6 @@ config = {
 if __name__ == "__main__":
     while True:
         user_input = input("You may enter your incredible query: ")
-        result = app.invoke({"messages": [HumanMessage(content=user_input)]}, config)
+        result = graph_app.invoke({"messages": [HumanMessage(content=user_input)]}, config)
         for m in result["messages"]:
             m.pretty_print()

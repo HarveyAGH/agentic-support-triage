@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0002 - FastAPI Agent Doorway</title>
+  <link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <h1>Lesson 0002: FastAPI Is The Doorway To Your Agent</h1>
+  <p class="callout">Mission link: this turns your agent from a terminal demo into a backend AI service that another app can call.</p>
+
+  <h2>The Concept</h2>
+  <p>Your current agent is callable only by running Python directly. FastAPI gives it an HTTP doorway.</p>
+  <pre><code>current:
+uv run python agent/agent.py
+you type into terminal
+
+target:
+POST http://localhost:8000/triage
+another app sends JSON</code></pre>
+
+  <h2>The Three Layers</h2>
+  <p>Do not mix these up:</p>
+  <pre><code>Uvicorn = the running server process
+FastAPI = the web app/router
+Your agent = the business logic called by the endpoint</code></pre>
+
+  <h2>The First Endpoint</h2>
+  <p>The first endpoint should be tiny. Its only job is to prove another program can call your agent.</p>
+  <pre><code>POST /triage
+request:
+{
+  "message": "i was charged twice",
+  "thread_id": "demo-1"
+}
+
+response:
+{
+  "answer": "...",
+  "routes_called": ["route_to_billing"],
+  "needs_escalation": false
+}</code></pre>
+
+  <h2>Why Pydantic Models Matter</h2>
+  <p>FastAPI uses Pydantic models to define the request and response contract. This is not decoration. It is how you make the API predictable.</p>
+  <pre><code>class TriageRequest(BaseModel):
+    message: str
+    thread_id: str = "api-demo"
+
+class TriageResponse(BaseModel):
+    answer: str
+    routes_called: list[str]
+    needs_escalation: bool</code></pre>
+
+  <h2>Build Order</h2>
+  <ol>
+    <li>Add FastAPI and Uvicorn dependencies.</li>
+    <li>Create <code>api/main.py</code>.</li>
+    <li>Add <code>GET /health</code> to prove the server runs.</li>
+    <li>Add request and response models.</li>
+    <li>Add <code>POST /triage</code>.</li>
+    <li>Call the existing LangGraph app from the endpoint.</li>
+    <li>Extract the final answer, route tool names, and escalation flag.</li>
+    <li>Test in browser at <code>/docs</code>.</li>
+  </ol>
+
+  <h2>Why This Order</h2>
+  <p>First prove the server is alive. Then prove JSON validation works. Then call the agent. This makes debugging simple because each layer has a separate proof.</p>
+
+  <h2>Practice Check</h2>
+  <div class="check">
+    <p><strong>Question:</strong> If <code>/health</code> works but <code>/triage</code> fails, what layer is probably broken?</p>
+    <details><summary>Reveal answer</summary><p>The server layer works. The issue is probably request parsing, agent invocation, output extraction, or credentials.</p></details>
+    <p><strong>Question:</strong> If Uvicorn does not start, is your LangGraph agent definitely broken?</p>
+    <details><summary>Reveal answer</summary><p>No. The server/import/dependency layer may be broken before the agent even runs.</p></details>
+  </div>
+
+  <h2>Primary Sources</h2>
+  <p>Use FastAPI's <a href="https://fastapi.tiangolo.com/tutorial/first-steps/">First Steps</a>, <a href="https://fastapi.tiangolo.com/tutorial/body/">Request Body</a>, <a href="https://fastapi.tiangolo.com/async/">async/await</a>, and <a href="https://fastapi.tiangolo.com/deployment/manually/">manual server</a> docs.</p>
+
+  <h2>Reference</h2>
+  <p>Use the <a href="../reference/fastapi-agent-service-cheatsheet.html">FastAPI Agent Service Cheatsheet</a> while building.</p>
+</body>
+</html>

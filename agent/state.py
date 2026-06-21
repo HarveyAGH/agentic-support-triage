@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class SupervisorState(TypedDict):
-    messages = Annotated[Sequence[BaseMessage], add_messages]
+    messages: Annotated[Sequence[BaseMessage], add_messages]
     
 class BillingResult(BaseModel):
     domain: Literal["billing"]

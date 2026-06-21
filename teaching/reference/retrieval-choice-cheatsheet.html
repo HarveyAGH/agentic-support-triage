@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retrieval Choice Cheatsheet</title>
+  <link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <h1>Retrieval Choice Cheatsheet</h1>
+  <p class="callout">Use this whenever you ask: should I use vector search, BM25/full-text search, or both?</p>
+
+  <h2>Vector Search</h2>
+  <p><strong>Best when:</strong> the user asks by meaning, not exact wording.</p>
+  <pre><code>Query: "How can work affect someone's mental wellbeing?"
+Goal: retrieve chunks about mental health, work, stress, motivation.</code></pre>
+
+  <h2>BM25 / Full-Text Search</h2>
+  <p><strong>Best when:</strong> exact tokens matter.</p>
+  <pre><code>Query: "schizo lunatic psycho terminology"
+Goal: retrieve chunks containing those exact words.</code></pre>
+
+  <h2>Hybrid Retrieval</h2>
+  <p><strong>Best default for serious systems:</strong> run both, merge/rerank results, then send the best grounded chunks to the answer step.</p>
+  <pre><code>vector_results = semantic_retriever(query)
+bm25_results = lexical_retriever(query)
+final_context = rerank_or_merge(vector_results, bm25_results)</code></pre>
+
+  <h2>Interview Rule</h2>
+  <p>Say this plainly: "Vector search finds meaning. BM25 finds exact language. Hybrid retrieval protects you from both semantic misses and exact-match misses."</p>
+
+  <h2>Resume Wording</h2>
+  <pre><code>RAG/Retrieval: PDF loading, recursive chunking, SentenceTransformers embeddings,
+ChromaDB vector search, BM25 lexical retrieval, semantic retrieval.</code></pre>
+</body>
+</html>

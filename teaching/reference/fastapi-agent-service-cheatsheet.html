@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FastAPI Agent Service Cheatsheet</title>
+  <link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <h1>FastAPI Agent Service Cheatsheet</h1>
+  <p class="callout">FastAPI turns Python functions into URLs. Uvicorn keeps the app running and listening for HTTP requests.</p>
+
+  <h2>Mental Model</h2>
+  <pre><code>without API:
+terminal -> agent.py -> printed answer
+
+with FastAPI:
+external app -> HTTP request -> FastAPI endpoint -> agent.invoke() -> JSON response</code></pre>
+
+  <h2>Core Objects</h2>
+  <pre><code>app = FastAPI()
+
+@app.post("/triage")
+async def triage(request: TriageRequest):
+    result = await agent.ainvoke(...)
+    return TriageResponse(...)</code></pre>
+
+  <h2>What Each Piece Means</h2>
+  <ul>
+    <li><strong>FastAPI app:</strong> the Python web application.</li>
+    <li><strong>Uvicorn:</strong> the server process that runs the app.</li>
+    <li><strong>Endpoint:</strong> a URL mapped to a Python function.</li>
+    <li><strong>Request model:</strong> the input JSON shape.</li>
+    <li><strong>Response model:</strong> the output JSON shape.</li>
+    <li><strong>Swagger docs:</strong> automatic browser UI at <code>/docs</code>.</li>
+  </ul>
+
+  <h2>First Agent API Goal</h2>
+  <pre><code>POST /triage
+input: customer message + thread id
+output: final answer + routes called + escalation flag</code></pre>
+
+  <h2>Run Command</h2>
+  <pre><code>uv run uvicorn api.main:app --reload</code></pre>
+
+  <h2>Interview Sentence</h2>
+  <p>"I wrapped the LangGraph agent in a FastAPI service so other applications can call it over HTTP instead of only using it through a local CLI."</p>
+</body>
+</html>

@@ -8,7 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from agent.agent import app
+from agent.agent import app, haiku
 from evals.golden_dataset import GOLDEN_DATASET
 from evals.graders import (
     grade_content_contains,
@@ -18,6 +18,7 @@ from evals.graders import (
     grade_no_error,
     grade_not_contains,
     grade_under_hop_limit,
+    grade_quality_llm_judge
 )
 
 
@@ -32,6 +33,7 @@ GRADERS = {
     "expected_escalation": grade_expected_escalation,
     "file_written": grade_file_written,
     "hop_limit": grade_under_hop_limit,
+    "quality_llm_judge": lambda run_result, expected: grade_quality_llm_judge(run_result, expected, haiku),
 }
 
 
